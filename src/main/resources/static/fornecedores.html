@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fornecedores - SCAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-6">Cadastro de Fornecedores</h1>
+
+    <form id="formFornecedor" class="mb-6 bg-white p-4 rounded shadow">
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <input type="text" id="nome" placeholder="Nome" required class="border p-2 rounded" />
+            <input type="text" id="telefone" placeholder="Telefone" required class="border p-2 rounded" />
+            <input type="text" id="endereco" placeholder="Endereço" required class="border p-2 rounded" />
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Cadastrar</button>
+    </form>
+
+    <h2 class="text-2xl font-semibold mb-4">Lista de Fornecedores</h2>
+    <table class="table-auto w-full bg-white shadow rounded overflow-hidden">
+        <thead class="bg-blue-100">
+        <tr>
+            <th class="px-4 py-2 text-left">ID</th>
+            <th class="px-4 py-2 text-left">Nome</th>
+            <th class="px-4 py-2 text-left">Telefone</th>
+            <th class="px-4 py-2 text-left">Endereço</th>
+            <th class="px-4 py-2">Ações</th>
+        </tr>
+        </thead>
+        <tbody id="tabelaFornecedores"></tbody>
+    </table>
+</div>
+
+<script>
+    const api = "http://localhost:8080/fornecedores";
+
+    async function carregarFornecedores() {
+        const res = await axios.get(api);
+        const tabela = document.getElementById("tabelaFornecedores");
+        tabela.innerHTML = "";
+        res.data.forEach(f => {
+            tabela.innerHTML += `
+          <tr class="border-t">
+            <td class="px-4 py-2">${f.id}</td>
+            <td class="px-4 py-2">${f.nome}</td>
+            <td class="px-4 py-2">${f.telefone}</td>
+            <td class="px-4 py-2">${f.endereco}</td>
+            <td class="px-4 py-2 text-center">
+              <button onclick="deletarFornecedor(${f.id})" class="text-red-600 hover:underline">Excluir</button>
+            </td>
+          </tr>`;
+        });
+    }
+
+    async function deletarFornecedor(id) {
+        if (confirm("Deseja realmente excluir este fornecedor?")) {
+            await axios.delete(`${api}/${id}`);
+            carregarFornecedores();
+        }
+    }
+
+    document.getElementById("formFornecedor").addEventListener("submit", async e => {
+        e.preventDefault();
+        const nome = document.getElementById("nome").value;
+        const telefone = document.getElementById("telefone").value;
+        const endereco = document.getElementById("endereco").value;
+
+        await axios.post(api, { nome, telefone, endereco });
+
+        e.target.reset();
+        carregarFornecedores();
+    });
+
+    carregarFornecedores();
+    async function deletarFornecedor(id) {
+        if (confirm("Deseja realmente excluir este fornecedor?")) {
+            try {
+                await axios.delete(`${api}/${id}`);
+                carregarFornecedores();
+            } catch (err) {
+                alert("Este fornecedor está vinculado a um abate e não pode ser excluído.");
+            }
+        }
+    }
+
+</script>
+</body>
+</html>

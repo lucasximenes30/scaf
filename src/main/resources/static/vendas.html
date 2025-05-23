@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vendas - SCAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-6">Registro de Vendas</h1>
+
+    <form id="formVenda" class="mb-6 bg-white p-4 rounded shadow">
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <input type="date" id="data" required class="border p-2 rounded" />
+            <input type="number" id="pesoVendido" placeholder="Peso Vendido (kg)" required class="border p-2 rounded" />
+            <select id="clienteId" required class="border p-2 rounded">
+                <option value="">Selecione um cliente</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Registrar</button>
+    </form>
+
+    <h2 class="text-2xl font-semibold mb-4">Lista de Vendas</h2>
+    <table class="table-auto w-full bg-white shadow rounded overflow-hidden">
+        <thead class="bg-green-100">
+        <tr>
+            <th class="px-4 py-2 text-left">ID</th>
+            <th class="px-4 py-2 text-left">Data</th>
+            <th class="px-4 py-2 text-left">Peso Vendido</th>
+            <th class="px-4 py-2 text-left">Cliente</th>
+        </tr>
+        </thead>
+        <tbody id="tabelaVendas"></tbody>
+    </table>
+</div>
+
+<script>
+    const apiVenda = "http://localhost:8080/vendas";
+    const apiCliente = "http://localhost:8080/clientes";
+
+    async function carregarVendas() {
+        const res = await axios.get(`${apiVenda}/filtro-dto`);
+        const tabela = document.getElementById("tabelaVendas");
+        tabela.innerHTML = "";
+        res.data.forEach(v => {
+            tabela.innerHTML += `
+          <tr class="border-t">
+            <td class="px-4 py-2">${v.id}</td>
+            <td class="px-4 py-2">${v.data}</td>
+            <td class="px-4 py-2">${v.pesoVendido} kg</td>
+            <td class="px-4 py-2">${v.clienteNome}</td>
+          </tr>`;
+        });
+    }
+
+    async function carregarClientesParaSelect() {
+        const res = await axios.get(apiCliente);
+        const select = document.getElementById("clienteId");
+        select.innerHTML = '<option value="">Selecione um cliente</option>';
+        res.data.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+        });
+    }
+
+    document.getElementById("formVenda").addEventListener("submit", async e => {
+        e.preventDefault();
+        const data = document.getElementById("data").value;
+        const pesoVendido = parseFloat(document.getElementById("pesoVendido").value);
+        const clienteId = parseInt(document.getElementById("clienteId").value);
+
+        await axios.post(apiVenda, {
+            data,
+            pesoVendido,
+            clienteId
+        });
+
+        e.target.reset();
+        carregarVendas();
+    });
+
+    carregarClientesParaSelect();
+    carregarVendas();
+</script>
+</body>
+</html>
